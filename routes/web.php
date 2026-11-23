@@ -18,6 +18,46 @@ Route::get('/', function () {
 // Public Portal Cek Siswa (Orang tua bisa cek via NISN)
 Route::get('/cek-siswa', [PortalController::class, 'search'])->name('portal.search');
 
+// Hosting Web Installer Helper (Untuk Cloud Hosting Tanpa Terminal)
+Route::get('/hosting-setup', function (\Illuminate\Http\Request $request) {
+    if ($request->query('token') !== 'smkmifda2026') {
+        abort(403, 'Akses ditolak. Token otorisasi tidak valid.');
+    }
+
+    $results = [];
+
+    // 1. Storage Symlink
+    try {
+        \Illuminate\Support\Facades\Artisan::call('storage:link');
+        $results[] = 'Storage link: ' . trim(\Illuminate\Support\Facades\Artisan::output());
+    } catch (\Throwable $e) {
+        $results[] = 'Storage link: ' . $e->getMessage();
+    }
+
+    // 2. Clear cache
+    try {
+        \Illuminate\Support\Facades\Artisan::call('optimize:clear');
+        $results[] = 'Cache optimize:clear berhasil dijalankan.';
+    } catch (\Throwable $e) {
+        $results[] = 'Cache error: ' . $e->getMessage();
+    }
+
+    // 3. Test Database Connection
+    try {
+        \Illuminate\Support\Facades\DB::connection()->getPdo();
+        $dbName = \Illuminate\Support\Facades\DB::connection()->getDatabaseName();
+        $results[] = "Koneksi database sukses ({$dbName})";
+    } catch (\Throwable $e) {
+        $results[] = 'Koneksi database gagal: ' . $e->getMessage();
+    }
+
+    return response()->json([
+        'status' => 'success',
+        'message' => 'Setup hosting berhasil diproses!',
+        'details' => $results
+    ]);
+});
+
 // Authentication
 Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
 Route::post('/login', [AuthController::class, 'login'])->name('login.post');
