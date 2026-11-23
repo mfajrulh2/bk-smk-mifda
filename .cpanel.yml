@@ -1,0 +1,7 @@
+---
+deployment:
+  tasks:
+    # Ganti path di bawah sesuai dengan folder Document Root subdomain Anda di cPanel
+    # Contoh: /home/USERNAME/public_html/disiplin/
+    - export DEPLOYPATH=/home/username/edisiplin/
+    - /bin/cp -R * $DEPLOYPATH
